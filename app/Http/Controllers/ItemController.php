@@ -1,11 +1,15 @@
 <?php
 
 namespace App\Http\Controllers;
+use Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use  App\Item;
+use App\Item;
 use App\Http\Resources\Item as ItemResource;
 use App\Http\Resources\ItemCollection;
+use App\Exceptions\UnauthenticatedException;
+use App\Exceptions\UnauthorizedException;
+use App\Exceptions\InvalidDataException;
 class ItemController extends Controller
 {
      /**
@@ -36,7 +40,7 @@ class ItemController extends Controller
      */
     public function store(Request $request)
     {
-        $itemDetails = $this->validate($request, [
+        $validateData = Validator::make($request->all(), [
             'name' => ['required', 'regex:/(?!.*(free|offer|book|website)).*$/i'],
             'rating' => 'required|integer|min:0|max:5',
             'category' => 'required|string|in:hotel,alternative,hostel,lodge,resort,guest-house',
@@ -46,8 +50,14 @@ class ItemController extends Controller
             'price'  => 'required|integer',
             'availability'  => 'required|integer',
         ]);
-        $itemDetails['hotelier_id'] = Auth::user()->userable_id;
-        $item = Item::create($itemDetails);
+
+        if($validateData->fails()) {
+            throw new InvalidDataException($validateData->errors());
+        }
+
+        $validateData = $validateData->valid();
+        $validateData['hotelier_id'] = Auth::user()->userable_id;
+        $item = Item::create($validateData);
         return new ItemResource($item);
     }
 
@@ -61,11 +71,7 @@ class ItemController extends Controller
      */
     public function show(Request $request)
     {
-        $item = Item::where('id', $request->id)->first();
-
-        if($item->hotelier_id !== Auth::user()->userable_id) {
-            abort(403, 'Unauthorized action.');
-        }
+        $item = $this->getItem($request->id);
         
         return new ItemResource($item);
     }
@@ -79,13 +85,9 @@ class ItemController extends Controller
      */
     public function update(Request $request)
     {
-        $item = Item::where('id', $request->id)->first();
+        $item = $this->getItem($request->id);
 
-        if($item->hotelier_id !== Auth::user()->userable_id) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $itemDetails = $this->validate($request, [
+        $validateData = Validator::make($request->all(), [
             'name' => ['regex:/(?!.*(free|offer|book|website)).*$/i'],
             'rating' => 'integer|min:0|max:5',
             'category' => 'string|in:hotel,alternative,hostel,lodge,resort,guest-house',
@@ -95,9 +97,10 @@ class ItemController extends Controller
             'price'  => 'integer',
             'availability'  => 'integer',
         ]);
-        
-        $itemDetails['hotelier_id'] = Auth::user()->userable_id;
-        $item->fill($itemDetails)->save();
+        if($validateData->fails()) {
+            throw new InvalidDataException($validateData->errors());
+        }
+        $item->fill($validateData->valid())->save();
         return new ItemResource($item);
     }
 
@@ -109,15 +112,22 @@ class ItemController extends Controller
      */
     public function destroy(Request $request)
     {
-        $item = Item::where('id', $request->id)->first();
-
-        if($item->hotelier_id !== Auth::user()->userable_id) {
-            abort(403, 'Unauthorized action.');
-        }
+        $item = $this->getItem($request->id);
 
         $item->delete();
 
         return response('deleted successfully', 200);
+    }
+
+    private function getItem($id) {
+        $item = Item::where('id', $id)->first();
+
+        if($item->hotelier_id !== Auth::user()->userable_id) {
+            // abort(403, 'Unauthorized action.');
+            throw new UnauthorizedException();
+        }
+
+        return $item;
     }
 
 }
