@@ -19,7 +19,6 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     $router->post('register', 'AuthController@register');
     $router->post('login', 'AuthController@login');
 
-    // Only accessible by hoteliers
     $router->post('/locations', 'LocationController@store');
     $router->group(['prefix' => 'items'], function () use ($router) {
         $router->post('/', 'ItemController@store');
@@ -27,5 +26,7 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->get('/{id}', 'ItemController@show'); // Better solution is to use slugs
         $router->patch('/{id}', 'ItemController@update');
         $router->delete('/{id}', 'ItemController@destroy');
+        $router->post('/{id}', 'BookingController@book');
     });
+    
 });
