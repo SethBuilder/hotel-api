@@ -20,12 +20,15 @@ class CreateItemsTable extends Migration
             $table->string('category');
             $table->string('image');
             $table->integer('reputation')->unsigned();
-            $table->string('reputationBadge');
             $table->integer('price');
             $table->integer('availability');
 
             $table->integer('location_id')->unsigned();
             $table->foreign('location_id')->references('id')->on('locations');
+
+            $table->integer('hotelier_id')->unsigned();
+            $table->foreign('hotelier_id')->references('id')->on('hoteliers');
+
             $table->timestamps();
         });
     }
