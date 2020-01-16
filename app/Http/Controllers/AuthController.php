@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use  App\User;
-use  App\Hotelier;
+use App\User;
+use App\Hotelier;
+use App\Customer;
+use App\Exceptions\UnauthenticatedException;
+use App\Exceptions\InvalidDataException;
 use Illuminate\Support\Facades\Auth;
+use Validator;
 
 class AuthController extends Controller
 {
@@ -17,26 +21,26 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $this->validate($request, [
+        $validateData = Validator::make($request->all(), [
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
+            'type'     => 'required|in:hotelier,customer'
         ]);
 
-        try {
-            $hotelier = Hotelier::create();
-            $user = new User;
-            $user->email = $request->input('email');
-            $password = $request->input('password');
-            $user->password = app('hash')->make($password);
-
-            $hotelier->user()->save($user);
-
-            return response()->json(['user' => $user, 'message' => 'Hotelier created'], 201);
-
-        } catch (\Exception $e) {
-            return response()->json(['message' => "User registration failed: $e"], 409);
+        if($validateData->fails()) {
+            throw new InvalidDataException($validateData->errors());
         }
 
+        $hotelier = $request->type === "hotelier" ? Hotelier::create() : Customer::create();
+        $user = new User;
+        $user->email = $request->email;
+        $password = $request->password;
+        $user->password = app('hash')->make($password);
+
+        $hotelier->user()->save($user);
+
+        return response()->json(['user' => $user, 'message' => "$user->userable_type created"], 201);
+        
     }
 
 
@@ -56,7 +60,7 @@ class AuthController extends Controller
         $credentials = $request->only(['email', 'password']);
 
         if (! $token = Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            throw new UnauthenticatedException();
         }
 
         return $this->respondWithToken($token);

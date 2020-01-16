@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-use Validator;
+use Validator, Gate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Item;
@@ -122,11 +122,9 @@ class ItemController extends Controller
     private function getItem($id) {
         $item = Item::where('id', $id)->first();
 
-        if($item->hotelier_id !== Auth::user()->userable_id) {
-            // abort(403, 'Unauthorized action.');
+        if (Gate::denies('access-item', $item)) {
             throw new UnauthorizedException();
         }
-
         return $item;
     }
 

@@ -35,5 +35,9 @@ class AuthServiceProvider extends ServiceProvider
                 return User::where('api_token', $request->input('api_token'))->first();
             }
         });
+
+        Gate::define('access-item', function ($user, $item) {
+            return $user->userable_id === $item->hotelier_id && $user->userable_type === "App\Hotelier";
+        });
     }
 }

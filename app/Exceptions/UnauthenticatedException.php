@@ -27,7 +27,7 @@ class UnauthenticatedException extends Exception
         return response()->json([
             "type" => "https://trivago.seif.rocks/probs/unauthenticated", 
             "title" => "Login failed", 
-            "detail" => "Authentication token is expired or invalid - please login again.",
+            "detail" => "Wrong username and password or authentication token is expired or invalid.",
         ], 401);
     }
 }
