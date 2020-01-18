@@ -32,7 +32,7 @@ class LocationController extends Controller
         ]);
 
         $location = Location::create($locationDetails);
-        return response()->json(['location' => $location], 200);
+        return response()->json([$location], 200);
     }
 
 }

@@ -41,7 +41,7 @@ class ItemController extends Controller
     public function store(Request $request)
     {
         $validateData = Validator::make($request->all(), [
-            'name' => ['required', 'regex:/(?!.*(free|offer|book|website)).*$/i'],
+            'name' => ['required','min:10', 'regex:/(?!.*(free|offer|book|website)).*$/i'],
             'rating' => 'required|integer|min:0|max:5',
             'category' => 'required|string|in:hotel,alternative,hostel,lodge,resort,guest-house',
             'location_id' => 'required|integer',

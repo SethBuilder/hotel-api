@@ -11,19 +11,16 @@
 |
 */
 
-// $router->get('/', ['middleware' => 'auth', function () use ($router) {
-//     return $router->app->version();
-// }]);
-
 $router->group(['prefix' => 'api'], function () use ($router) {
     $router->post('register', 'AuthController@register');
     $router->post('login', 'AuthController@login');
 
     $router->post('/locations', 'LocationController@store');
+    
     $router->group(['prefix' => 'items'], function () use ($router) {
         $router->post('/', 'ItemController@store');
         $router->get('/', 'ItemController@index');
-        $router->get('/{id}', 'ItemController@show'); // Better solution is to use slugs
+        $router->get('/{id}', 'ItemController@show');
         $router->patch('/{id}', 'ItemController@update');
         $router->delete('/{id}', 'ItemController@destroy');
         $router->post('/{id}', 'BookingController@book');
