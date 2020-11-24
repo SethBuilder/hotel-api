@@ -1,3 +1,3 @@
 # This is a PHP/Lumen API for hotel booking that implements this ER diagram
 
-![Hotel ER diargam](![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png))
+![Hotel ER diargam](https://raw.githubusercontent.com/SethBuilder/trivago/master/design/er.jpg)
